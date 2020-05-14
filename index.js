@@ -8,17 +8,17 @@ var template = require('./lib/template.js');
 
 
 app.use(express.static('img'));
+app.use(express.static('css'));
 
 var favicon = require('serve-favicon');
-app.use(favicon(path.join(__dirname,'/img','favicon.jpg')));
+app.use('/img', favicon(path.join(__dirname + '/img','favicon.jpg')));
 
-var logo = `<img src="logo.png"></img>`;
 var shopRouter = require('./routes/shop');
 
 app.get('/', function(req, res){
     var title = 'hi';
     var description = "메인화면";
-    var html = template.HTML(title, description, logo)
+    var html = template.HTML(title, description)
     res.send(html);
 });
 
@@ -32,7 +32,7 @@ app.get('/login/:pageId', function(req, res){
             allowedTags:['h1']
           });
           var html = template.HTML(sanitizedTitle, 
-            `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<img src="../logo.png"></img>`
+            `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`
           );
         res.send(html);
     });
