@@ -9,7 +9,11 @@ router.get('/in_sale', function(req, res){
     var sanitizedTitle = sanitizeHtml(title);
     var sanitizedDescription = `재배기 사용 판매 정보`;
     var html = template.HTML(sanitizedTitle, 
+<<<<<<< HEAD
+    `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`
+=======
     `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<img src="../logo.png"></img>`
+>>>>>>> main
     );
     res.send(html);
 });
@@ -19,7 +23,11 @@ router.get('/out_sale', function(req, res){
     var sanitizedTitle = sanitizeHtml(title);
     var sanitizedDescription = `재배기 미사용 판매 정보`;
     var html = template.HTML(sanitizedTitle, 
+<<<<<<< HEAD
+    `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`
+=======
     `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<img src="../logo.png"></img>`
+>>>>>>> main
     );
     res.send(html);
 });
@@ -31,7 +39,11 @@ router.get('/:pageId', function(req, res){
     var sanitizedTitle = sanitizeHtml(title);
     var sanitizedDescription = `쇼핑몰 내용 테스트`;
     var html = template.HTML(sanitizedTitle, 
+<<<<<<< HEAD
+    `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`
+=======
     `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<img src="../logo.png"></img>`
+>>>>>>> main
     );
     res.send(html);
 });
