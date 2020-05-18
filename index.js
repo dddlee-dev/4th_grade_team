@@ -10,7 +10,7 @@ var template = require('./lib/template.js');
 app.use(express.static('img'));
 //app.use(express.static('img/item'));
 app.use('/image', express.static(__dirname + '/img'));
-app.use(express.static('css'));
+app.use('/style', express.static(__dirname + '/css'));
 
 var favicon = require('serve-favicon');
 app.use('/img', favicon(path.join(__dirname + '/img','favicon.jpg')));
