@@ -1,5 +1,5 @@
 var express = require('express')
-var app = express()
+var app = express();
 var fs = require('fs');
 var path = require('path');
 var sanitizeHtml = require('sanitize-html');
@@ -8,6 +8,8 @@ var template = require('./lib/template.js');
 
 
 app.use(express.static('img'));
+//app.use(express.static('img/item'));
+app.use('/image', express.static(__dirname + '/img'));
 app.use(express.static('css'));
 
 var favicon = require('serve-favicon');
