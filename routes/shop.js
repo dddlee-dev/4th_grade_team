@@ -4,6 +4,7 @@ var template = require('../lib/template');
 var db = require('../lib/db.js');
 var sanitizeHtml = require('sanitize-html');
 var path = require('path');
+var auth = require('../lib/auth');
 
 
 //내부 판매
@@ -12,7 +13,7 @@ router.get('/in_sale', function(req, res){
     var sanitizedTitle = sanitizeHtml(title);
     var sanitizedDescription = `재배기 사용 판매 정보`;
     var html = template.HTML(sanitizedTitle, 
-    `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`
+    `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, auth.statusUI(req, res)
     );
     res.send(html);
 });
@@ -20,8 +21,8 @@ router.get('/in_sale', function(req, res){
 //외부 판매
 router.get('/out_sale', function(req, res){ 
     //db.query(`SELECT item_num, itme_name, item_price, item_cover FROM item`, function(error, results){
-    db.query(`SELECT * FROM item`, function(error, results){        
-        console.log(results);
+    db.db.query(`SELECT * FROM item`, function(error, results){        
+        //console.log(results);
         
         var desc = '<ul>';
         var i = 0;
@@ -42,7 +43,7 @@ router.get('/out_sale', function(req, res){
         var sanitizedTitle = sanitizeHtml(title);   
        // var sanitizedDescription = sanitizeHtml(desc, {allowedTags:['img']});
         var html = template.HTML(sanitizedTitle, 
-            `<h2>${sanitizedTitle}</h2>${desc}`
+            `<h2>${sanitizedTitle}</h2>${desc}`, auth.statusUI(req, res)
         );
 
         res.send(html);
@@ -53,10 +54,9 @@ router.get('/out_sale', function(req, res){
 //상품 정보
 router.get('/item/:pageId', function(req, res){ 
     var filteredId = path.parse(req.params.pageId).base;
-    var title = filteredId;
-
-    db.query(`SELECT * FROM item WHERE item_num = ${filteredId}`, function(error, results){        
-        console.log(results);
+    
+    db.db.query(`SELECT * FROM item WHERE item_num = ${filteredId}`, function(error, results){        
+        //console.log(results);
         
         var desc = `
         <img id="item_cover"src="/image/item/${results[0].item_cover}"></img>
@@ -85,7 +85,7 @@ router.get('/item/:pageId', function(req, res){
         `
         var string = results[0].item_info
         var slice = string.split(';');
-        console.log(slice);
+        //console.log(slice);
         var i = 0;
         while(i < slice.length){
             desc = desc + `<img src='/image/item/${slice[i]}'> </img>`
@@ -101,11 +101,11 @@ router.get('/item/:pageId', function(req, res){
 
         `;
         
-        var sanitizedTitle =  results.item_price;
-        //var sanitizedTitle = sanitizeHtml(title);   
+        var title = results[0].item_name;
+        var sanitizedTitle = sanitizeHtml(title);   
        // var sanitizedDescription = sanitizeHtml(desc, {allowedTags:['img']});
         var html = template.HTML(sanitizedTitle, 
-            `${desc}`
+            `${desc}`, auth.statusUI(req, res)
         );
 
         res.send(html);
@@ -122,6 +122,7 @@ router.get('/:pageId', function(req, res){
     var sanitizedDescription = `쇼핑몰 내용 테스트`;
     var html = template.HTML(sanitizedTitle, 
     `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`
+    , auth.statusUI(req, res)
     );
     res.send(html);
 });
