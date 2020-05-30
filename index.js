@@ -22,6 +22,7 @@ app.use('/img', favicon(path.join(__dirname + '/img','favicon.jpg')));
 
 var shopRouter = require('./routes/shop');
 var loginRouter = require('./routes/login');
+var boardRouter = require('./routes/board');
 
 app.use(session({
     secret: '1fsgdg34@!$DFfrf@@fsd',
@@ -34,7 +35,7 @@ app.use(session({
 
 
 app.get('/', function(req, res){
-    console.log(req.session);
+    //console.log(req.session);
     var title = 'hi';
     var description = "메인화면";
     var html = template.HTML(title, description, auth.statusUI(req, res))
@@ -61,6 +62,6 @@ app.get('/', function(req, res){
 
 app.use('/shop', shopRouter);
 app.use('/login', loginRouter);
-
+app.use('/board', boardRouter);
 
 app.listen(3001, () => console.log(`Example app listening at http://localhost:3001`))
