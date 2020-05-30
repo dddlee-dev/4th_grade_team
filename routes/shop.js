@@ -30,8 +30,8 @@ router.get('/out_sale', function(req, res){
         while(i < results.length){
             desc = desc + `
             <li>
-                <a href="./item/${results[i].item_num}"><img id="item_cover"src="../image/item/${results[i].item_cover}"></img></a>
-                <a href="./item/${results[i].item_num}"><p>${results[i].item_name}</p></a>
+                <a href="./item/${results[i].item_num}/0"><img id="item_cover"src="../image/item/${results[i].item_cover}"></img></a>
+                <a href="./item/${results[i].item_num}/0"><p>${results[i].item_name}</p></a>
                 <hr></hr>            
                 <div>${results[i].item_price}</div>
             </li>`
@@ -53,14 +53,15 @@ router.get('/out_sale', function(req, res){
 });
 
 //상품 정보
-router.get('/item/:pageId', function(req, res){ 
+router.get('/item/:pageId/:pageId2', function(req, res){ 
     var filteredId = path.parse(req.params.pageId).base;
-
+    var filteredId2 = path.parse(req.params.pageId2).base;
+    
     var filteredIdt = [filteredId];
 
     var sql_item = `SELECT * FROM item WHERE item_num = ?;`;
     var sql_item_s = mysql.format(sql_item, filteredIdt);
-    var sql_comment = `SELECT board_title,board_time,user_nickname,board_view,board_info FROM board JOIN user ON user_num = board_witer WHERE board_num = ? ;`;
+    var sql_comment = `SELECT board_title,board_time,user_nickname,board_view,board_info FROM board JOIN user ON user_num = board_witer WHERE board_category = ? ;`;
     var sql_comment_s = mysql.format(sql_comment, filteredIdt);
 
     //db.db.query(`SELECT * FROM board WHERE board_category=?`, [filteredId], function(res_board){ 
@@ -126,45 +127,129 @@ router.get('/item/:pageId', function(req, res){
             if(results[1] == '' ||results[1] ==  null ||results[1] ==  undefined ||results[1] ==  0 || results[1] == NaN) 
             {
                 desc = desc +  `<tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
                 
-                </tr>`;
+                </tr> </tbody>
+                </table>
+                <button><a href="../../review/${filteredId}">후기 작성하기</a></button>
+            </div>`;
             }
             else{
-                var star = '';
-                for(var i = 0;i < 5; i++)
-                {   
-                    if(i < Number(results[1][0].board_info)) 
+                //댓글 페이지
+                var leng = results[1].length;
+                //console.log(leng);
+                if(leng > 5)
+                {
+                    var start = results[1].length - 1 - (5 * filteredId2);
+                    var last = start - 5;
+                    if (last < 0) last = 0;
+                    
+                    for (var j = start; j >last ; j--)
                     {
-                        star = star + `★`;
-                    }
-                    else 
-                    {
-                        star = star + `☆`;
-                    }
-                }
-                //console.log(typeof results[1][0].board_info);
-                console.log(star);
+                        var star = '';
+                        for(var i = 0;i < 5; i++)
+                        {   
+                            if(i < Number(results[1][j].board_info)) 
+                            {
+                                star = star + `★`;
+                            }
+                            else 
+                            {
+                                star = star + `☆`;
+                            }
+                        }
+                        //console.log(typeof results[1][0].board_info);
+                        //console.log(star);
+                        //console.log(results[1].length);
+    
+    
+                        var date_ = new Date(results[1][j].board_time * 1);
+                        var date = date_.getFullYear() +'-'+date_.getMonth() +'-' +date_.getDate();
+                        //console.log(date);
+    
+                        desc = desc +  `<tr>
+                        <td>${j + 1}</td>
+                        <td>${results[1][j].board_title}</td>
+                        
+                        <td>${results[1][j].user_nickname}</td>
+                        <td>${date}</td>
+                        <td>${results[1][j].board_view}</td>
+                        <td>${star}</td>
+                        </tr>`;
 
-                desc = desc +  `<tr>
-                <td>1</td>
-                <td>${results[1][0].board_title}</td>
-                <td>${results[1][0].board_time}</td>
-                <td>${results[1][0].user_nickname}</td>
-                <td>${results[1][0].board_view}</td>
-                <td>${star}</td>
-                </tr>`;
+                    }
+                    desc = desc +  `     
+                            </tbody>
+                        </table>
+                        <p> `
+                        if(Number(filteredId2) !== 0)  desc = desc + `<a href="../${filteredId}/${Number(filteredId2) - 1}">◀이전  </a>`
+
+                    for(var j = 0 ; j < parseInt((Number(leng) / 5))+1 ; j++)
+                    {
+                        if(Number(filteredId2) !== j)
+                        {
+                            desc = desc + `<a href="../${filteredId}/${j}">${j+1}</a>`;
+                        }
+                        else{
+                            desc = desc + `<a> ${j+1} </a>`;
+                        }
+                    }
+                    if(Number(filteredId2) != parseInt((Number(leng) / 5)))  desc = desc + `<a href="../${filteredId}/${Number(filteredId2) + 1}">  다음▶</a>`
+                    // console.log(Number(filteredId2));
+                    // console.log((Number(leng) / 5 ));
+
+                    desc = desc +  `</p>
+                        <button><a href="../../review/${filteredId}">후기 작성하기</a></button>
+                    </div>`;
+                }
+                else{
+                //기존
+                for (var j = results[1].length - 1; j >=0 ; j--)
+                {
+                    var star = '';
+                    for(var i = 0;i < 5; i++)
+                    {   
+                        if(i < Number(results[1][j].board_info)) 
+                        {
+                            star = star + `★`;
+                        }
+                        else 
+                        {
+                            star = star + `☆`;
+                        }
+                    }
+                    //console.log(typeof results[1][0].board_info);
+                    //console.log(star);
+                    //console.log(results[1].length);
+
+
+                    var date_ = new Date(results[1][j].board_time * 1);
+                    var date = date_.getFullYear() +'-'+date_.getMonth() +'-' +date_.getDate();
+                    //console.log(date);
+
+                    desc = desc +  `<tr>
+                    <td>${j + 1}</td>
+                    <td>${results[1][j].board_title}</td>
+                    
+                    <td>${results[1][j].user_nickname}</td>
+                    <td>${date}</td>
+                    <td>${results[1][j].board_view}</td>
+                    <td>${star}</td>
+                    </tr>`;
+                }
+                desc = desc +  `     
+                </tbody>
+            </table>
+            <button><a href="../../review/${filteredId}">후기 작성하기</a></button>
+        </div>`;
+                }
             }
        
-        desc = desc +  `     
-                </tbody>
-            </table>        
-        </div>`;
 
 
         
@@ -178,6 +263,73 @@ router.get('/item/:pageId', function(req, res){
         res.send(html);
 
     });
+});
+
+router.get('/review/:pageId', function(req, res){ 
+    var filteredId = path.parse(req.params.pageId).base;
+    if(!auth.isOwner(req,res))
+    {
+        res.redirect(`notlogin`);
+    }
+    else{
+
+    var star = 0;
+    var desc = `
+    <h2>REVIEW | 상품후기</h2>
+    <hr>
+    <form action="create/${filteredId}" method="post">
+    <table>
+        <tr>
+            <td>제목</td>
+            <td><input type="text" name="title"></td>
+        </tr>
+        <tr>
+            <td>평점</td>
+            <td><p>
+            <input type="radio" name="star" value="1" >☆
+            <input type="radio" name="star" value="2" >☆☆
+            <input type="radio" name="star" value="3" checked="checked">☆☆☆
+            <input type="radio" name="star" value="4" >☆☆☆☆
+            <input type="radio" name="star" value="5" >☆☆☆☆☆
+            </p></td>
+        </tr>
+    </table>
+    <textarea name="content">
+    </textarea>
+    <input type="submit" value="등록">
+    <a  href="../item/${filteredId}/0"><input type="button" value="취소"></a>
+    </form>
+    `
+
+    
+    var title = filteredId + "상품 후기";
+    var sanitizedTitle = sanitizeHtml(title);
+    var html = template.HTML(sanitizedTitle, 
+    desc
+    , auth.statusUI(req, res)
+    );
+    res.send(html);
+    }
+});
+router.get('/review/notlogin',function(req,res){
+    res.send(`<script type="text/javascript">alert("로그인이 필요합니다.");location.href='in_sale'</script>`);
+});
+
+router.post('/review/create/:pageId', function(req, res){ 
+    var filteredId = path.parse(req.params.pageId).base;
+    //console.log(req.body);
+    
+    db.db.query(`INSERT INTO board 
+    (board_category, board_title, board_content, board_witer, board_info) 
+    VALUES   (?, ?, ?, ?, ?)`,
+    [filteredId, req.body.title, req.body.content, req.session.user_num, req.body.star],
+    function(error){
+        if(error){
+            //throw error;
+        }
+        res.writeHead(302, {Location: `/shop/item/${filteredId}/0`});
+        res.end();
+    }); 
 });
 
 
