@@ -83,7 +83,7 @@ router.get('/community/:pageId/:pageId2', function(req, res){
         desc = desc +  `     
                 </tbody>
             </table>
-            <button><a href="../../review/${filteredId}">후기 작성하기</a></button>
+            <button><a href="../../community/${filteredId}/newboard">글쓰기</a></button>
         </div>`;
 
         var title = '수경재배 커뮤니티';
@@ -95,6 +95,10 @@ router.get('/community/:pageId/:pageId2', function(req, res){
         res.send(html);
     });
 
+    
+});
+
+router.get('/community/:pageId/newboard', function(req, res){ 
     
 });
 
