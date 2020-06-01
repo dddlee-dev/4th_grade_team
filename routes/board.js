@@ -144,7 +144,7 @@ router.get('/community/:pageId/:pageId2', function(req, res){
     });
     var start = 20 * filteredId2;
     
-    db.db.query(`SELECT board_title,board_time,user_nickname,board_view,board_info FROM board JOIN user ON user_num = board_witer WHERE board_category = ${filteredId} ORDER BY board_time DESC Limit ${start}, 20`, function(err,results){
+    db.db.query(`SELECT board_num,board_title,board_time,user_nickname,board_view,board_info FROM board JOIN user ON user_num = board_witer WHERE board_category = ${filteredId} ORDER BY board_time DESC Limit ${start}, 20`, function(err,results){
         //console.log(results);
         console.log(max);
         var desc = `
@@ -196,7 +196,7 @@ router.get('/community/:pageId/:pageId2', function(req, res){
                 `<tr>
                     <td>${max - (filteredId2 * 20) -  j }</td>
                     <td>${recommend}</td>
-                    <td>${results[j].board_title}</td>
+                    <td><a href="/board/community/${filteredId}/${filteredId2}/content/${results[j].board_num}">${results[j].board_title}</a></td>
                     <td>${results[j].user_nickname}</td>
                     <td>${date}</td>
                     <td>${results[j].board_view}</td>     
@@ -247,19 +247,46 @@ router.get('/community/:pageId/:pageId2/content/:pageId3', async(req, res) =>{
     var filteredId3 = path.parse(req.params.pageId3).base;
 
     const list_ = await list.boardList(req,res);
-    console.log(list_);
 
-    var title = '수경재배 커뮤니티';
-    var sanitizedTitle = sanitizeHtml(title);   
-    var html = template.HTML(sanitizedTitle, 
-        `<p>글</p> ${list_}`, auth.statusUI(req, res)
-    );
+    db.db.query(`UPDATE board SET board_view=board_view+1 WHERE board_num = ${filteredId3} `, function(err){});
 
-    res.send(html);
+    db.db.query(`SELECT board_title, board_content,board_time,user_nickname,board_view,board_info FROM board JOIN user ON user_num = board_witer WHERE board_num = ${filteredId3} `, function(err,results)
+    {
+        var desc;
+        desc = `
+        <h1>${results[0].board_title}</h1>
+        `;
+        var recommend = results[0].board_info ;
+        //var time = results[0].board_time*1;
+        var date_ = new Date(results[0].board_time * 1);
+        var date = date_.getFullYear() +'-' + date_.getMonth() +'-' +date_.getDate()+' ' +date_.getHours()+':' +date_.getMinutes()+':' +date_.getSeconds();
+        if(recommend == null) recommend = 0;
+        desc = desc + `<p>추천 = ${recommend}</p>
+        <p>조회수 = ${results[0].board_view}</p>
+        <hr>
+        <p>${results[0].user_nickname}님</p>
+        <p>${date}</p>
+        <div id="content">${results[0].board_content}</div>
+        <button onclick="recommed_plus()"><a>${recommend} 추천하기</a></button>
+        <hr>
+        `;
 
 
+        // const list_ = await list.boardList(req,res);
+        //console.log(list_);
+
+        var title = '수경재배 커뮤니티';
+        var sanitizedTitle = sanitizeHtml(title);   
+        var html = template.HTML(sanitizedTitle, 
+            `${desc} ${list_}`, auth.statusUI(req, res)
+        );
+
+        res.send(html);
+
+    });
     
 });
+
 
 
 module.exports = router;
