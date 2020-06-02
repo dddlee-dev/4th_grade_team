@@ -6,6 +6,7 @@ var sanitizeHtml = require('sanitize-html');
 var path = require('path');
 var auth = require('../lib/auth');
 var list = require('../lib/board_list');
+var comment = require('../lib/comment');
 var mysql = require('mysql');
 
 //새글 작성
@@ -66,6 +67,96 @@ router.post('/community/:pageId/create', function(req, res){
         res.end();
     }); 
 });
+
+router.get('/community/create/4', function(req, res){ 
+    //var filteredId = path.parse(req.params.pageId).base;
+    
+    var tiem = '2020-06';
+    var d = 01;
+    var h = 02;
+    var m = 10;
+    var s = 19;
+
+    for(var i = 0;i < 20; i++)
+    {
+    var  title = i + " 번 댓글";
+   
+    var t = Math.floor(Math.random() * 60) + 1;
+    var s = s + t;
+    if(s > 59){
+        s = s - 60;
+        m++;
+    }
+    if(m > 59){
+        m = m - 60;
+        h++
+    }
+    if(h > 23){
+        h = h-24;
+        d++;
+    }
+    var tiem_ = tiem + "-" + d + " " + h + ":" + m + ":" + s;
+    
+    var  user_num = Math.floor(Math.random() * 5) + 1;
+    if(user_num > 2) user_num++;
+    db.db.query(`INSERT INTO comment 
+    (comment_board, comment_writer, comment_time, comment_level, comment_content) 
+    VALUES   (?, ?, ?, ?,?)`,
+    [14, user_num, tiem_,  i, title],
+    function(error){
+        if(error){
+            throw error;
+        }
+        console.log(i);
+    });
+    }   
+});
+
+router.get('/community/create/3', function(req, res){ 
+    //var filteredId = path.parse(req.params.pageId).base;
+    
+    var tiem = '2020-06';
+    var d = 01;
+    var h = 03;
+    var m = 10;
+    var s = 19;
+
+    for(var i = 0;i < 10; i++)
+    {
+    var  title = i + " 번 대댓글";
+   
+    var t = Math.floor(Math.random() * 60) + 1;
+    var s = s + t;
+    if(s > 59){
+        s = s - 60;
+        m++;
+    }
+    if(m > 59){
+        m = m - 60;
+        h++
+    }
+    if(h > 23){
+        h = h-24;
+        d++;
+    }
+    var tiem_ = tiem + "-" + d + " " + h + ":" + m + ":" + s;
+    
+    var  user_num = Math.floor(Math.random() * 5) + 1;
+    if(user_num > 2) user_num++;
+    db.db.query(`INSERT INTO comment 
+    (comment_board, comment_writer, comment_time, comment_level, comment_content) 
+    VALUES   (?, ?, ?, ?,?)`,
+    [14, user_num, tiem_,  Math.floor(Math.random() * 30) + 1, title],
+    function(error){
+        if(error){
+            throw error;
+        }
+        console.log(i);
+    });
+    }   
+});
+/*
+
 
 router.get('/community/:pageId/create/1', function(req, res){ 
     var filteredId = path.parse(req.params.pageId).base;
@@ -130,7 +221,7 @@ router.get('/community/:pageId/create/2', function(req, res){   //18 ~ 317까지
     }); 
     }   
 });
-
+*/
 
 
 //
@@ -247,6 +338,7 @@ router.get('/community/:pageId/:pageId2/content/:pageId3', async(req, res) =>{
     var filteredId3 = path.parse(req.params.pageId3).base;
 
     const list_ = await list.boardList(req,res);
+    const comment_ = await comment.commentList(req,res);
 
     db.db.query(`UPDATE board SET board_view=board_view+1 WHERE board_num = ${filteredId3} `, function(err){});
 
@@ -259,7 +351,18 @@ router.get('/community/:pageId/:pageId2/content/:pageId3', async(req, res) =>{
         var recommend = results[0].board_info ;
         //var time = results[0].board_time*1;
         var date_ = new Date(results[0].board_time * 1);
-        var date = date_.getFullYear() +'-' + date_.getMonth() +'-' +date_.getDate()+' ' +date_.getHours()+':' +date_.getMinutes()+':' +date_.getSeconds();
+        var date = date_.getFullYear() +'-';
+        if(date_.getMonth() < 10) date = date + '0';
+        date = date + date_.getMonth() +'-';
+        if(date_.getDate() < 10) date = date + '0';
+        date = date + date_.getDate()+' ';
+        if(date_.getHours() < 10) date = date + '0';
+        date = date + date_.getHours()+':';
+        if(date_.getMinutes() < 10) date = date + '0';
+        date = date + date_.getMinutes()+':';
+        if(date_.getSeconds() < 10) date = date + '0';
+        date = date + date_.getSeconds();
+
         if(recommend == null) recommend = 0;
         desc = desc + `<p>추천 = ${recommend}</p>
         <p>조회수 = ${results[0].board_view}</p>
@@ -278,7 +381,7 @@ router.get('/community/:pageId/:pageId2/content/:pageId3', async(req, res) =>{
         var title = '수경재배 커뮤니티';
         var sanitizedTitle = sanitizeHtml(title);   
         var html = template.HTML(sanitizedTitle, 
-            `${desc} ${list_}`, auth.statusUI(req, res)
+            `${desc}${comment_} ${list_}`, auth.statusUI(req, res)
         );
 
         res.send(html);
