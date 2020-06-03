@@ -9,6 +9,8 @@ var session = require('express-session');
 var MySQLStore = require('express-mysql-session')(session);
 var db = require('./lib/db.js');
 var auth = require('./lib/auth');
+var cookie = require('cookie');
+var http = require('http');
 
 app.use(bodyParser.urlencoded({extended: false}));
 

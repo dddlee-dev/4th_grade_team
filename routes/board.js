@@ -8,6 +8,7 @@ var auth = require('../lib/auth');
 var list = require('../lib/board_list');
 var comment = require('../lib/comment');
 var mysql = require('mysql');
+var cookie = require('cookie');
 
 //새글 작성
 router.get('/community/:pageId/newboard', function(req, res){ 
@@ -68,6 +69,7 @@ router.post('/community/:pageId/create', function(req, res){
     }); 
 });
 
+/*
 router.get('/community/create/4', function(req, res){ 
     //var filteredId = path.parse(req.params.pageId).base;
     
@@ -155,7 +157,7 @@ router.get('/community/create/3', function(req, res){
     });
     }   
 });
-/*
+
 
 
 router.get('/community/:pageId/create/1', function(req, res){ 
@@ -237,7 +239,7 @@ router.get('/community/:pageId/:pageId2', function(req, res){
     
     db.db.query(`SELECT board_num,board_title,board_time,user_nickname,board_view,board_info FROM board JOIN user ON user_num = board_witer WHERE board_category = ${filteredId} ORDER BY board_time DESC Limit ${start}, 20`, function(err,results){
         //console.log(results);
-        console.log(max);
+        //console.log(max);
         var desc = `
         <h2>수경재배 커뮤니티</h2>
         <div id = cummunity>
@@ -339,6 +341,7 @@ router.get('/community/:pageId/:pageId2/content/:pageId3', async(req, res) =>{
 
     const list_ = await list.boardList(req,res);
     const comment_ = await comment.commentList(req,res);
+    
 
     db.db.query(`UPDATE board SET board_view=board_view+1 WHERE board_num = ${filteredId3} `, function(err){});
 
@@ -374,14 +377,24 @@ router.get('/community/:pageId/:pageId2/content/:pageId3', async(req, res) =>{
         <hr>
         `;
 
-
+        var comment_input = `
+        <h2>댓글 쓰기</h2>
+        <div id="comment_in">
+        <form action="${filteredId3}/create" method="post">
+        <textarea name="content">
+        </textarea>
+        <input type="submit" value="댓글 쓰기">
+        </form>
+        </div>
+        <hr>
+        `
         // const list_ = await list.boardList(req,res);
         //console.log(list_);
 
         var title = '수경재배 커뮤니티';
         var sanitizedTitle = sanitizeHtml(title);   
         var html = template.HTML(sanitizedTitle, 
-            `${desc}${comment_} ${list_}`, auth.statusUI(req, res)
+            `${desc}${comment_}${comment_input} ${list_}`, auth.statusUI(req, res)
         );
 
         res.send(html);
@@ -390,6 +403,65 @@ router.get('/community/:pageId/:pageId2/content/:pageId3', async(req, res) =>{
     
 });
 
+
+//걍 댓글 읽어올때 쿠키에 최대 레벨 저장하자
+router.post('/community/:pageId/:pageId2/content/:pageId3/create', function(req, res){ 
+    var filteredId = path.parse(req.params.pageId).base;
+    var filteredId2 = path.parse(req.params.pageId2).base;
+    var filteredId3 = path.parse(req.params.pageId3).base;
+    //console.log(req.body);
+    if(!auth.isOwner(req,res))
+    {
+        res.redirect(`/community/${filteredId}/notlogin`);
+    }
+    else{
+        var filteredId3 = path.parse(req.params.pageId3).base;
+        
+        var max;
+
+        var sql_1 = `SELECT MAX(comment_level) AS max FROM comment WHERE comment_board=?;`;
+        var sql_1_ =  mysql.format(sql_1, [filteredId3]);
+
+        db.db.query( sql_1_, function(error, re1)
+        {
+            results = re1[0].max;
+        
+            if(results == '' ||results ==  null ||results ==  undefined ||results ==  0 || results == NaN)
+            {
+                var sql_2 = `INSERT INTO comment(comment_board, comment_writer, comment_content, comment_level) VALUES (?, ?, ?, ?);`;
+                max = 0;
+                var sql_2_ = mysql.format(sql_2, [filteredId3, req.session.user_num, req.body.content, max+1]);
+
+        
+                db.db.query( sql_2_, function(error){
+            
+                        if(error){
+                            throw error;
+                        }
+                        res.writeHead(302, {Location: `/board/community/${filteredId}/${filteredId2}/content/${filteredId3}`});
+                        res.end();
+                    });
+            } 
+            else{
+                var sql_2 = `INSERT INTO comment(comment_board, comment_writer, comment_content, comment_level) VALUES (?, ?, ?, ?);`;
+                max = re1[0].max;
+                var sql_2_ = mysql.format(sql_2, [filteredId3, req.session.user_num, req.body.content, max+1]);
+
+        
+                db.db.query( sql_2_, function(error){
+            
+                        if(error){
+                            throw error;
+                        }
+                        res.writeHead(302, {'Location': `/board/community/${filteredId}/${filteredId2}/content/${filteredId3}`});
+                        res.end();
+                    });
+            }
+           
+        
+        });
+    }
+});
 
 
 module.exports = router;
